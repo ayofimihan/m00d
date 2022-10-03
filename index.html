@@ -4,36 +4,50 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="index.css" />
     <title>Document</title>
   </head>
   <body>
-      <div class="container">
-          
-          <h1>First Dapp</h1>
-          <p>Basic dapp to set a mood and get mood</p>
-          <label for="mood"> Input</label>
-          <input type="text" id="mood" />
-          <div>
-              <button onclick="getMood()">Get mood</button>
-            </div>
-            <div>
-                <button onclick="setMood()">Set mood</button>
-            </div>
-            
-        </div>
-            <script
-            charset="utf-8"
+    <div class="container">
+      <h1>How are you feeling?</h1>
+      <h3>
+        a basic contract i deployed on ropsten, setting and getting
+        string values on the blockchain, displaying the connected address and
+        connecting a basic frontend to a contract using ethersjs
+      </h3>
+      <p id="addy"></p>
+
+      <label for="mood"> This is how i'm feeling</label>
+      <input type="text" id="mood" placeholder="how are you feeling?" />
+      <div>
+        <button onclick="getMood()">Get mood</button>
+      </div>
+      <h4 id="myMood"></h4>
+      <div>
+        <button onclick="setMood()">Set mood</button>
+      </div>
+      <div>
+        <button onclick="getAddress()">check address</button>
+      </div>
+    </div>
+
+    //import ethersjs library through the cdn
+    <script
+      charset="utf-8"
       src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"
       type="application/javascript"
     ></script>
+
+    //script to connect the contract to the frontend
     <script>
+        //create a new provider instance and pass in the window.ethereum api and whichever chain its deployed on
       const provider = new ethers.providers.Web3Provider(
         window.ethereum,
         "ropsten"
       );
-      const moodContractAddress = "0xc6DdD6eB74484f1196C6b0887cC75804Dc58F00b";
-      const moodContractABI = [
+      //initialize the contract,signer,contractaddress and contractABI both gotten from the contract in remix.
+      const contractAddress = "0xc6DdD6eB74484f1196C6b0887cC75804Dc58F00b";
+      const contractABI = [
         {
           inputs: [
             {
@@ -61,28 +75,39 @@
           type: "function",
         },
       ];
-      let moodContract;
+      let contract;
       let signer;
+
+      //request account from user with the eth_request method and get back an array promise containing the connected address the make the signer the first account in the array.
+      //initialize a new contract with the provider and pass in the contract address, abi and signer
       provider.send("eth_requestAccounts", []).then(() => {
-      provider.listAccounts().then((accounts)=>{
-        signer = provider.getSigner(accounts[0]);
-        moodContract = new ethers.Contract(
-          moodContractAddress,
-          moodContractABI,
-          signer
-        );
+        provider.listAccounts().then((accounts) => {
+          signer = provider.getSigner(accounts[0]);
+          contract = new ethers.Contract(
+            contractAddress,
+            contractABI,
+            signer
+          );
+        });
       });
-    });
 
       async function getMood() {
-         getMoodPromise = moodContract.getMood();
-        const mood = await getMoodPromise;
-        console.log(mood);
+        const mood = await contract.getMood();
+        document.getElementById(
+          "myMood"
+        ).innerHTML = `currently feeling: ${mood}`;
       }
       async function setMood() {
         const mood = document.getElementById("mood").value;
-        setMoodPromise = moodContract.setMood(mood);
-        await setMoodPromise;
+        await contract.setMood(mood);
+      }
+
+      async function getAddress() {
+        let myAddress = await signer.getAddress();
+        document.getElementById(
+          "addy"
+        ).innerHTML = `connected address: ${myAddress}`;
+        // console.log(myAddress);
       }
     </script>
   </body>

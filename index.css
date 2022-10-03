@@ -1,5 +1,8 @@
+*{
+    background-color:beige;
+}
 h1 {
-  color: red;
+  color: rgb(111, 89, 47);
 }
 .container {
   display: flex;
